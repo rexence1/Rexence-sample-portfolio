@@ -1,0 +1,1867 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Modern Portfolio</title>
+    <script src="/_sdk/element_sdk.js"></script>
+    <style>
+      body {
+        box-sizing: border-box;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      :root {
+        --background: #faf9f6;
+        --surface: #ffffff;
+        --text: #2c3e50;
+        --primary: #e63946;
+        --secondary: #457b9d;
+      }
+
+      html {
+        scroll-behavior: smooth;
+        height: 100%;
+      }
+
+      body {
+        font-family: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        background: var(--background);
+        color: var(--text);
+        line-height: 1.7;
+        overflow-x: hidden;
+        min-height: 100%;
+        width: 100%;
+      }
+
+      body.dark-mode {
+        --background: #1a1a2e;
+        --surface: #16213e;
+        --text: #e4e4e4;
+        --primary: #f72585;
+        --secondary: #4cc9f0;
+      }
+
+      /* Header */
+      .header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        background: rgba(250, 249, 246, 0.95);
+        backdrop-filter: blur(20px);
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+        width: 100%;
+      }
+
+      body.dark-mode .header {
+        background: rgba(26, 26, 46, 0.95);
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+      }
+
+      .nav-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 1.2rem 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .logo {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary);
+        text-decoration: none;
+        letter-spacing: -0.5px;
+      }
+
+      .nav-menu {
+        display: flex;
+        gap: 2.5rem;
+        list-style: none;
+        align-items: center;
+      }
+
+      .nav-menu a {
+        color: var(--text);
+        text-decoration: none;
+        font-size: 0.95rem;
+        font-weight: 500;
+        transition: color 0.3s ease;
+        position: relative;
+      }
+
+      .nav-menu a:hover {
+        color: var(--primary);
+      }
+
+      .hamburger {
+        display: none;
+        flex-direction: column;
+        gap: 5px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0.5rem;
+        z-index: 1001;
+      }
+
+      .hamburger span {
+        width: 25px;
+        height: 3px;
+        background: var(--text);
+        border-radius: 3px;
+        transition: all 0.3s ease;
+      }
+
+      .hamburger.active span:nth-child(1) {
+        transform: rotate(45deg) translate(8px, 8px);
+      }
+
+      .hamburger.active span:nth-child(2) {
+        opacity: 0;
+      }
+
+      .hamburger.active span:nth-child(3) {
+        transform: rotate(-45deg) translate(7px, -7px);
+      }
+
+      .mobile-menu {
+        display: none;
+        position: fixed;
+        top: 0;
+        right: -100%;
+        width: 280px;
+        height: 100%;
+        background: var(--surface);
+        box-shadow: -5px 0 25px rgba(0, 0, 0, 0.1);
+        transition: right 0.3s ease;
+        z-index: 1000;
+        padding: 6rem 2rem 2rem;
+      }
+
+      body.dark-mode .mobile-menu {
+        box-shadow: -5px 0 25px rgba(0, 0, 0, 0.5);
+      }
+
+      .mobile-menu.active {
+        right: 0;
+      }
+
+      .mobile-menu ul {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+      }
+
+      .mobile-menu ul li a {
+        color: var(--text);
+        text-decoration: none;
+        font-size: 1.2rem;
+        font-weight: 600;
+        transition: color 0.3s ease;
+        display: block;
+      }
+
+      .mobile-menu ul li a:hover {
+        color: var(--primary);
+      }
+
+      .menu-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+
+      .menu-overlay.active {
+        opacity: 1;
+      }
+
+      .theme-btn {
+        background: var(--surface);
+        border: 2px solid var(--primary);
+        color: var(--primary);
+        padding: 0.5rem;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 42px;
+        height: 42px;
+      }
+
+      .theme-btn:hover {
+        transform: rotate(180deg);
+        background: var(--primary);
+        color: white;
+      }
+
+      .theme-btn svg {
+        width: 20px;
+        height: 20px;
+      }
+
+      /* Hero Section */
+      .hero {
+        min-height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        padding: 8rem 2rem 4rem;
+        width: 100%;
+        background: linear-gradient(
+          135deg,
+          var(--background) 0%,
+          var(--surface) 100%
+        );
+      }
+
+      .hero-content {
+        max-width: 1200px;
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 4rem;
+        align-items: center;
+      }
+
+      .hero-text h1 {
+        font-size: 4rem;
+        font-weight: 800;
+        margin-bottom: 1rem;
+        line-height: 1.1;
+        color: var(--text);
+      }
+
+      .hero-text .highlight {
+        color: var(--primary);
+        position: relative;
+        display: inline-block;
+      }
+
+      .hero-text .highlight::after {
+        content: "";
+        position: absolute;
+        bottom: 10px;
+        left: 0;
+        width: 100%;
+        height: 12px;
+        background: var(--primary);
+        opacity: 0.2;
+        z-index: -1;
+      }
+
+      .hero-text p {
+        font-size: 1.25rem;
+        color: var(--secondary);
+        margin-bottom: 2.5rem;
+        line-height: 1.8;
+      }
+
+      .hero-buttons {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+      }
+
+      .btn-primary {
+        background: var(--primary);
+        color: white;
+        padding: 1rem 2.5rem;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        border: 2px solid var(--primary);
+        display: inline-block;
+      }
+
+      .btn-primary:hover {
+        background: transparent;
+        color: var(--primary);
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(230, 57, 70, 0.3);
+      }
+
+      .btn-secondary {
+        background: transparent;
+        color: var(--secondary);
+        padding: 1rem 2.5rem;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        border: 2px solid var(--secondary);
+        display: inline-block;
+      }
+
+      .btn-secondary:hover {
+        background: var(--secondary);
+        color: white;
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(69, 123, 157, 0.3);
+      }
+
+      .hero-image {
+        position: relative;
+      }
+
+      .image-frame {
+        width: 100%;
+        height: 500px;
+        border-radius: 20px;
+        background: linear-gradient(
+          135deg,
+          var(--primary) 0%,
+          var(--secondary) 100%
+        );
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+      }
+
+      .image-frame::before {
+        content: "";
+        position: absolute;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(
+          45deg,
+          transparent 30%,
+          rgba(255, 255, 255, 0.1) 50%,
+          transparent 70%
+        );
+        animation: shine 3s infinite;
+      }
+
+      @keyframes shine {
+        0% {
+          transform: translateX(-100%) translateY(-100%) rotate(45deg);
+        }
+        100% {
+          transform: translateX(100%) translateY(100%) rotate(45deg);
+        }
+      }
+
+      .placeholder-icon {
+        width: 120px;
+        height: 120px;
+        color: white;
+        opacity: 0.7;
+        z-index: 1;
+      }
+
+      /* Section Styles */
+      .section-wrapper {
+        width: 100%;
+        background: var(--background);
+      }
+
+      .section {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 5rem 2rem;
+      }
+
+      .section-header {
+        text-align: center;
+        margin-bottom: 4rem;
+      }
+
+      .section-header h2 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 1rem;
+        position: relative;
+        display: inline-block;
+      }
+
+      .section-header h2::after {
+        content: "";
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 60px;
+        height: 4px;
+        background: var(--primary);
+        border-radius: 2px;
+      }
+
+      .section-header p {
+        color: var(--secondary);
+        font-size: 1.1rem;
+        max-width: 600px;
+        margin: 1.5rem auto 0;
+      }
+
+      /* About Section */
+      .about-content {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 4rem;
+        align-items: center;
+      }
+
+      .about-image {
+        width: 100%;
+        height: 450px;
+        border-radius: 20px;
+        background: linear-gradient(
+          135deg,
+          var(--secondary) 0%,
+          var(--primary) 100%
+        );
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .about-image::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(
+          circle,
+          rgba(255, 255, 255, 0.1) 0%,
+          transparent 70%
+        );
+        animation: pulse 4s infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          transform: scale(1);
+          opacity: 0.5;
+        }
+        50% {
+          transform: scale(1.1);
+          opacity: 0.8;
+        }
+      }
+
+      .about-text h3 {
+        font-size: 1.8rem;
+        color: var(--primary);
+        margin-bottom: 1.5rem;
+        font-weight: 700;
+      }
+
+      .about-text p {
+        font-size: 1.1rem;
+        line-height: 1.9;
+        color: var(--text);
+        margin-bottom: 2rem;
+        opacity: 0.9;
+      }
+
+      .skills-list {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+      }
+
+      .skill-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        background: var(--surface);
+        border-radius: 10px;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+      }
+
+      .skill-item:hover {
+        border-color: var(--primary);
+        transform: translateX(5px);
+      }
+
+      .skill-item svg {
+        width: 24px;
+        height: 24px;
+        color: var(--primary);
+      }
+
+      .skill-item span {
+        font-weight: 500;
+        font-size: 0.95rem;
+      }
+
+      /* Projects Section */
+      .projects-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 2rem;
+      }
+
+      .project-card {
+        background: var(--surface);
+        border-radius: 20px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        border: 2px solid transparent;
+      }
+
+      .project-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        border-color: var(--primary);
+      }
+
+      .project-image {
+        width: 100%;
+        height: 240px;
+        background: linear-gradient(
+          135deg,
+          var(--primary) 0%,
+          var(--secondary) 100%
+        );
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .project-image::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          180deg,
+          transparent 0%,
+          rgba(0, 0, 0, 0.4) 100%
+        );
+      }
+
+      .project-details {
+        padding: 2rem;
+      }
+
+      .project-details h3 {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+        color: var(--text);
+        font-weight: 700;
+      }
+
+      .project-details p {
+        color: var(--text);
+        opacity: 0.8;
+        margin-bottom: 1.5rem;
+        line-height: 1.7;
+      }
+
+      .project-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .tag {
+        background: var(--primary);
+        color: white;
+        padding: 0.4rem 1rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+      }
+
+      .project-links {
+        display: flex;
+        gap: 1rem;
+      }
+
+      .project-link {
+        flex: 1;
+        text-align: center;
+        padding: 0.75rem;
+        background: var(--primary);
+        color: white;
+        text-decoration: none;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+      }
+
+      .project-link:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(230, 57, 70, 0.3);
+      }
+
+      .project-link.secondary {
+        background: transparent;
+        border: 2px solid var(--secondary);
+        color: var(--secondary);
+      }
+
+      .project-link.secondary:hover {
+        background: var(--secondary);
+        color: white;
+      }
+
+      /* Services Section */
+      .services-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 2rem;
+      }
+
+      .service-card {
+        background: var(--surface);
+        padding: 2.5rem 2rem;
+        border-radius: 20px;
+        text-align: center;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+      }
+
+      .service-card:hover {
+        transform: translateY(-10px);
+        border-color: var(--primary);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+      }
+
+      .service-icon {
+        width: 70px;
+        height: 70px;
+        background: linear-gradient(
+          135deg,
+          var(--primary) 0%,
+          var(--secondary) 100%
+        );
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        color: white;
+      }
+
+      .service-icon svg {
+        width: 36px;
+        height: 36px;
+      }
+
+      .service-card h3 {
+        font-size: 1.3rem;
+        margin-bottom: 1rem;
+        color: var(--text);
+        font-weight: 700;
+      }
+
+      .service-card p {
+        color: var(--text);
+        opacity: 0.8;
+        line-height: 1.7;
+      }
+
+      /* Contact Section */
+      .contact-content {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .contact-intro {
+        text-align: center;
+        margin-bottom: 3rem;
+        font-size: 1.1rem;
+        color: var(--text);
+        opacity: 0.9;
+      }
+
+      .contact-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 3rem;
+        align-items: start;
+      }
+
+      .contact-info {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+      }
+
+      .contact-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 1.5rem;
+        padding: 1.5rem;
+        background: var(--surface);
+        border-radius: 15px;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+      }
+
+      .contact-item:hover {
+        border-color: var(--primary);
+        transform: translateX(5px);
+      }
+
+      .contact-icon {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(
+          135deg,
+          var(--primary) 0%,
+          var(--secondary) 100%
+        );
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        flex-shrink: 0;
+      }
+
+      .contact-icon svg {
+        width: 24px;
+        height: 24px;
+      }
+
+      .contact-details h4 {
+        font-size: 1.1rem;
+        color: var(--text);
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+      }
+
+      .contact-details p {
+        color: var(--text);
+        opacity: 0.8;
+        line-height: 1.6;
+      }
+
+      .contact-details a {
+        color: var(--primary);
+        text-decoration: none;
+        transition: color 0.3s ease;
+      }
+
+      .contact-details a:hover {
+        color: var(--secondary);
+      }
+
+      .contact-form {
+        background: var(--surface);
+        padding: 3rem;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      }
+
+      .form-group {
+        margin-bottom: 1.5rem;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: var(--text);
+      }
+
+      .form-group input,
+      .form-group textarea {
+        width: 100%;
+        padding: 1rem;
+        background: var(--background);
+        border: 2px solid transparent;
+        border-radius: 10px;
+        color: var(--text);
+        font-family: inherit;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+      }
+
+      .form-group input:focus,
+      .form-group textarea:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px rgba(230, 57, 70, 0.1);
+      }
+
+      .form-group textarea {
+        resize: vertical;
+        min-height: 150px;
+      }
+
+      .submit-btn {
+        width: 100%;
+        padding: 1.2rem;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .submit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(230, 57, 70, 0.3);
+      }
+
+      .submit-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      /* Footer */
+      .footer {
+        background: var(--surface);
+        padding: 3rem 2rem;
+        text-align: center;
+        border-top: 1px solid rgba(0, 0, 0, 0.05);
+        width: 100%;
+      }
+
+      body.dark-mode .footer {
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+      }
+
+      .footer-content {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .social-links {
+        display: flex;
+        gap: 1.5rem;
+        justify-content: center;
+        margin-bottom: 2rem;
+      }
+
+      .social-links a {
+        width: 45px;
+        height: 45px;
+        background: var(--background);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text);
+        transition: all 0.3s ease;
+      }
+
+      .social-links a:hover {
+        background: var(--primary);
+        color: white;
+        transform: translateY(-5px);
+      }
+
+      .footer p {
+        color: var(--text);
+        opacity: 0.7;
+        font-size: 0.95rem;
+      }
+
+      /* Scroll to Top */
+      .scroll-top {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        width: 50px;
+        height: 50px;
+        background: var(--primary);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        opacity: 0;
+        pointer-events: none;
+        transition: all 0.3s ease;
+        z-index: 999;
+        border: none;
+        box-shadow: 0 5px 15px rgba(230, 57, 70, 0.4);
+      }
+
+      .scroll-top.visible {
+        opacity: 1;
+        pointer-events: all;
+      }
+
+      .scroll-top:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(230, 57, 70, 0.5);
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
+        .nav-menu {
+          display: none;
+        }
+
+        .hamburger {
+          display: flex;
+        }
+
+        .mobile-menu {
+          display: block;
+        }
+
+        .menu-overlay {
+          display: block;
+        }
+
+        .hero-content {
+          grid-template-columns: 1fr;
+          gap: 3rem;
+        }
+
+        .hero-text h1 {
+          font-size: 2.5rem;
+        }
+
+        .hero-text p {
+          font-size: 1.1rem;
+        }
+
+        .image-frame {
+          height: 350px;
+        }
+
+        .about-content {
+          grid-template-columns: 1fr;
+          gap: 2rem;
+        }
+
+        .about-image {
+          height: 300px;
+        }
+
+        .skills-list {
+          grid-template-columns: 1fr;
+        }
+
+        .section {
+          padding: 3rem 1.5rem;
+        }
+
+        .section-header h2 {
+          font-size: 2rem;
+        }
+
+        .projects-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .services-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .contact-grid {
+          grid-template-columns: 1fr;
+          gap: 2rem;
+        }
+
+        .contact-form {
+          padding: 2rem 1.5rem;
+        }
+
+        .hero-buttons {
+          flex-direction: column;
+        }
+
+        .btn-primary,
+        .btn-secondary {
+          width: 100%;
+          text-align: center;
+        }
+      }
+    </style>
+    <style>
+      @view-transition {
+        navigation: auto;
+      }
+    </style>
+    <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+    <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+  </head>
+  <body>
+    <!-- Header -->
+    <header class="header">
+      <nav class="nav-container">
+        <a href="#hero" class="logo">Portfolio</a>
+        <ul class="nav-menu">
+          <li><a href="#about">About</a></li>
+          <li><a href="#projects">Work</a></li>
+          <li><a href="#services">Services</a></li>
+          <li><a href="#contact">Contact</a></li>
+          <li>
+            <button
+              class="theme-btn"
+              id="themeToggle"
+              aria-label="Toggle theme"
+            >
+              <svg
+                class="sun-icon"
+                viewbox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <circle cx="12" cy="12" r="5" />
+                <line x1="12" y1="1" x2="12" y2="3" />
+                <line x1="12" y1="21" x2="12" y2="23" />
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                <line x1="1" y1="12" x2="3" y2="12" />
+                <line x1="21" y1="12" x2="23" y2="12" />
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+              </svg>
+              <svg
+                class="moon-icon"
+                style="display: none"
+                viewbox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+              </svg>
+            </button>
+          </li>
+        </ul>
+        <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+          <span></span> <span></span> <span></span>
+        </button>
+      </nav>
+    </header>
+    <!-- Mobile Menu Overlay -->
+    <div class="menu-overlay" id="menuOverlay"></div>
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobileMenu">
+      <ul>
+        <li><a href="#about" class="mobile-link">About</a></li>
+        <li><a href="#projects" class="mobile-link">Work</a></li>
+        <li><a href="#services" class="mobile-link">Services</a></li>
+        <li><a href="#contact" class="mobile-link">Contact</a></li>
+      </ul>
+    </div>
+    <!-- Hero Section -->
+    <section id="hero" class="hero">
+      <div class="hero-content">
+        <div class="hero-text">
+          <h1>
+            Hi, I'm <span class="highlight" id="heroTitle">John Doe</span>
+          </h1>
+          <p id="heroSubtitle">
+            Creative designer and developer passionate about building beautiful
+            digital experiences that make a difference.
+          </p>
+          <div class="hero-buttons">
+            <a href="#contact" class="btn-primary" id="heroCta">Let's Talk</a>
+            <a href="#projects" class="btn-secondary">View Work</a>
+          </div>
+        </div>
+        <div class="hero-image">
+          <div class="image-frame">
+            <svg
+              class="placeholder-icon"
+              viewbox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- About Section -->
+    <div class="section-wrapper">
+      <section id="about" class="section">
+        <div class="section-header">
+          <h2 id="aboutTitle">About Me</h2>
+          <p>Get to know me better</p>
+        </div>
+        <div class="about-content">
+          <div class="about-image">
+            <svg
+              class="placeholder-icon"
+              viewbox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <circle cx="8.5" cy="8.5" r="1.5" />
+              <path d="M21 15l-5-5L5 21" />
+            </svg>
+          </div>
+          <div class="about-text">
+            <h3>Crafting Digital Excellence</h3>
+            <p id="aboutBio">
+              I'm a designer and developer with 5+ years of experience creating
+              digital products that users love. My approach combines strategic
+              thinking with creative execution to deliver solutions that not
+              only look great but perform exceptionally.
+            </p>
+            <div class="skills-list">
+              <div class="skill-item">
+                <svg
+                  viewbox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <polyline points="16 18 22 12 16 6" />
+                  <polyline points="8 6 2 12 8 18" /></svg
+                ><span>Web Development</span>
+              </div>
+              <div class="skill-item">
+                <svg
+                  viewbox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <rect x="3" y="3" width="18" height="18" rx="2" />
+                  <circle cx="8.5" cy="8.5" r="1.5" />
+                  <path d="M21 15l-5-5L5 21" /></svg
+                ><span>UI/UX Design</span>
+              </div>
+              <div class="skill-item">
+                <svg
+                  viewbox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <rect x="5" y="2" width="14" height="20" rx="2" />
+                  <path d="M12 18h.01" /></svg
+                ><span>Mobile Apps</span>
+              </div>
+              <div class="skill-item">
+                <svg
+                  viewbox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+                  /></svg
+                ><span>Brand Identity</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+    <!-- Projects Section -->
+    <div class="section-wrapper">
+      <section id="projects" class="section">
+        <div class="section-header">
+          <h2 id="projectsTitle">Featured Projects</h2>
+          <p>A selection of my recent work</p>
+        </div>
+        <div class="projects-grid">
+          <div class="project-card">
+            <div class="project-image">
+              <svg
+                class="placeholder-icon"
+                viewbox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <rect x="2" y="3" width="20" height="14" rx="2" />
+                <path d="M8 21h8M12 17v4" />
+              </svg>
+            </div>
+            <div class="project-details">
+              <h3>E-Commerce Platform</h3>
+              <p>
+                A modern shopping experience with seamless checkout and
+                inventory management for growing businesses.
+              </p>
+              <div class="project-tags">
+                <span class="tag">React</span> <span class="tag">Node.js</span>
+                <span class="tag">MongoDB</span>
+              </div>
+              <div class="project-links">
+                <a
+                  href="#"
+                  class="project-link"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  >View Live</a
+                >
+                <a
+                  href="#"
+                  class="project-link secondary"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  >Source</a
+                >
+              </div>
+            </div>
+          </div>
+          <div class="project-card">
+            <div class="project-image">
+              <svg
+                class="placeholder-icon"
+                viewbox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <rect x="5" y="2" width="14" height="20" rx="2" />
+                <path d="M12 18h.01" />
+              </svg>
+            </div>
+            <div class="project-details">
+              <h3>Fitness Tracker App</h3>
+              <p>
+                Track workouts, nutrition, and progress with beautiful data
+                visualization and social features.
+              </p>
+              <div class="project-tags">
+                <span class="tag">React Native</span>
+                <span class="tag">Firebase</span>
+                <span class="tag">Chart.js</span>
+              </div>
+              <div class="project-links">
+                <a
+                  href="#"
+                  class="project-link"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  >View Live</a
+                >
+                <a
+                  href="#"
+                  class="project-link secondary"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  >Source</a
+                >
+              </div>
+            </div>
+          </div>
+          <div class="project-card">
+            <div class="project-image">
+              <svg
+                class="placeholder-icon"
+                viewbox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+            </div>
+            <div class="project-details">
+              <h3>Task Management Tool</h3>
+              <p>
+                Collaborate with teams efficiently with kanban boards, real-time
+                updates, and smart notifications.
+              </p>
+              <div class="project-tags">
+                <span class="tag">Vue.js</span>
+                <span class="tag">Tailwind</span>
+                <span class="tag">WebSocket</span>
+              </div>
+              <div class="project-links">
+                <a
+                  href="#"
+                  class="project-link"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  >View Live</a
+                >
+                <a
+                  href="#"
+                  class="project-link secondary"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  >Source</a
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+    <!-- Services Section -->
+    <div class="section-wrapper">
+      <section id="services" class="section">
+        <div class="section-header">
+          <h2 id="servicesTitle">What I Offer</h2>
+          <p>Services tailored to your needs</p>
+        </div>
+        <div class="services-grid">
+          <div class="service-card">
+            <div class="service-icon">
+              <svg
+                viewbox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <rect x="2" y="3" width="20" height="14" rx="2" />
+                <path d="M8 21h8M12 17v4" />
+              </svg>
+            </div>
+            <h3>Web Development</h3>
+            <p>
+              Fast, responsive websites built with modern technologies for
+              optimal performance.
+            </p>
+          </div>
+          <div class="service-card">
+            <div class="service-icon">
+              <svg
+                viewbox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <circle cx="12" cy="12" r="3" />
+                <path d="M12 1v6m0 6v6" />
+              </svg>
+            </div>
+            <h3>UI/UX Design</h3>
+            <p>
+              Intuitive interfaces designed with users in mind, backed by
+              research and testing.
+            </p>
+          </div>
+          <div class="service-card">
+            <div class="service-icon">
+              <svg
+                viewbox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <rect x="5" y="2" width="14" height="20" rx="2" />
+                <path d="M12 18h.01" />
+              </svg>
+            </div>
+            <h3>Mobile Apps</h3>
+            <p>
+              Native and cross-platform mobile applications that deliver
+              seamless experiences.
+            </p>
+          </div>
+          <div class="service-card">
+            <div class="service-icon">
+              <svg
+                viewbox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+                />
+              </svg>
+            </div>
+            <h3>Branding</h3>
+            <p>
+              Complete brand identity systems that capture your unique vision
+              and values.
+            </p>
+          </div>
+          <div class="service-card">
+            <div class="service-icon">
+              <svg
+                viewbox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
+            </div>
+            <h3>Consulting</h3>
+            <p>
+              Strategic guidance on digital transformation and product
+              development.
+            </p>
+          </div>
+          <div class="service-card">
+            <div class="service-icon">
+              <svg
+                viewbox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"
+                />
+              </svg>
+            </div>
+            <h3>Maintenance</h3>
+            <p>
+              Ongoing support and updates to keep your digital products running
+              smoothly.
+            </p>
+          </div>
+        </div>
+      </section>
+    </div>
+    <!-- Contact Section -->
+    <div class="section-wrapper">
+      <section id="contact" class="section">
+        <div class="section-header">
+          <h2 id="contactTitle">Get In Touch</h2>
+          <p id="contactMessage">
+            Have a project in mind? Let's work together to bring your ideas to
+            life.
+          </p>
+        </div>
+        <div class="contact-content">
+          <div class="contact-grid">
+            <div class="contact-info">
+              <div class="contact-item">
+                <div class="contact-icon">
+                  <svg
+                    viewbox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path
+                      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                    />
+                  </svg>
+                </div>
+                <div class="contact-details">
+                  <h4>Email</h4>
+                  <p>
+                    <a href="mailto:john.doea@email.com">john.doe@email.com</a>
+                  </p>
+                  <p>
+                    <a href="mailto:contact@johndoe.com">contact@johndoe.com</a>
+                  </p>
+                </div>
+              </div>
+              <div class="contact-item">
+                <div class="contact-icon">
+                  <svg
+                    viewbox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path
+                      d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"
+                    />
+                  </svg>
+                </div>
+                <div class="contact-details">
+                  <h4>Phone</h4>
+                  <p><a href="tel:+15551234567">+1 (555) 123-4567</a></p>
+                  <p>Mon-Fri, 9am-6pm PST</p>
+                </div>
+              </div>
+              <div class="contact-item">
+                <div class="contact-icon">
+                  <svg
+                    viewbox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
+                    <circle cx="12" cy="10" r="3" />
+                  </svg>
+                </div>
+                <div class="contact-details">
+                  <h4>Location</h4>
+                  <p>San Francisco, CA</p>
+                  <p>Available for remote work worldwide</p>
+                </div>
+              </div>
+              <div class="contact-item">
+                <div class="contact-icon">
+                  <svg
+                    viewbox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                  </svg>
+                </div>
+                <div class="contact-details">
+                  <h4>Response Time</h4>
+                  <p>Usually within 24 hours</p>
+                  <p>Urgent? Text or call directly</p>
+                </div>
+              </div>
+            </div>
+            <form class="contact-form" id="contactForm">
+              <div class="form-group">
+                <label for="name">Your Name</label>
+                <input type="text" id="name" name="name" required />
+              </div>
+              <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" required />
+              </div>
+              <div class="form-group">
+                <label for="message">Message</label>
+                <textarea id="message" name="message" required></textarea>
+              </div>
+              <button type="submit" class="submit-btn" id="submitBtn">
+                Send Message
+              </button>
+            </form>
+          </div>
+        </div>
+      </section>
+    </div>
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-content">
+        <div class="social-links">
+          <a
+            href="https://github.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="GitHub"
+          >
+            <svg width="20" height="20" viewbox="0 0 24 24" fill="currentColor">
+              <path
+                d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
+              /></svg
+          ></a>
+          <a
+            href="https://linkedin.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="LinkedIn"
+          >
+            <svg width="20" height="20" viewbox="0 0 24 24" fill="currentColor">
+              <path
+                d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"
+              /></svg
+          ></a>
+          <a
+            href="https://twitter.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Twitter"
+          >
+            <svg width="20" height="20" viewbox="0 0 24 24" fill="currentColor">
+              <path
+                d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"
+              /></svg
+          ></a>
+        </div>
+        <p id="footerCopyright">© 2025 John Doe. All rights reserved.</p>
+      </div>
+    </footer>
+    <!-- Scroll to Top Button -->
+    <button class="scroll-top" id="scrollTop" aria-label="Scroll to top">
+      <svg
+        width="24"
+        height="24"
+        viewbox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <path d="M18 15l-6-6-6 6" />
+      </svg>
+    </button>
+    <script>
+      const defaultConfig = {
+        hero_title: "John Doe",
+        hero_subtitle:
+          "Creative designer and developer passionate about building beautiful digital experiences that make a difference.",
+        hero_cta: "Let's Talk",
+        about_title: "About Me",
+        about_bio:
+          "I'm a designer and developer with 5+ years of experience creating digital products that users love. My approach combines strategic thinking with creative execution to deliver solutions that not only look great but perform exceptionally.",
+        projects_title: "Featured Projects",
+        services_title: "What I Offer",
+        contact_title: "Get In Touch",
+        contact_message:
+          "Have a project in mind? Let's work together to bring your ideas to life.",
+        footer_copyright: "© 2025 John Doe. All rights reserved.",
+      };
+
+      async function onConfigChange(config) {
+        document.getElementById("heroTitle").textContent =
+          config.hero_title || defaultConfig.hero_title;
+        document.getElementById("heroSubtitle").textContent =
+          config.hero_subtitle || defaultConfig.hero_subtitle;
+        document.getElementById("heroCta").textContent =
+          config.hero_cta || defaultConfig.hero_cta;
+        document.getElementById("aboutTitle").textContent =
+          config.about_title || defaultConfig.about_title;
+        document.getElementById("aboutBio").textContent =
+          config.about_bio || defaultConfig.about_bio;
+        document.getElementById("projectsTitle").textContent =
+          config.projects_title || defaultConfig.projects_title;
+        document.getElementById("servicesTitle").textContent =
+          config.services_title || defaultConfig.services_title;
+        document.getElementById("contactTitle").textContent =
+          config.contact_title || defaultConfig.contact_title;
+        document.getElementById("contactMessage").textContent =
+          config.contact_message || defaultConfig.contact_message;
+        document.getElementById("footerCopyright").textContent =
+          config.footer_copyright || defaultConfig.footer_copyright;
+      }
+
+      function mapToCapabilities(config) {
+        return {
+          recolorables: [],
+          borderables: [],
+          fontEditable: undefined,
+          fontSizeable: undefined,
+        };
+      }
+
+      function mapToEditPanelValues(config) {
+        return new Map([
+          ["hero_title", config.hero_title || defaultConfig.hero_title],
+          [
+            "hero_subtitle",
+            config.hero_subtitle || defaultConfig.hero_subtitle,
+          ],
+          ["hero_cta", config.hero_cta || defaultConfig.hero_cta],
+          ["about_title", config.about_title || defaultConfig.about_title],
+          ["about_bio", config.about_bio || defaultConfig.about_bio],
+          [
+            "projects_title",
+            config.projects_title || defaultConfig.projects_title,
+          ],
+          [
+            "services_title",
+            config.services_title || defaultConfig.services_title,
+          ],
+          [
+            "contact_title",
+            config.contact_title || defaultConfig.contact_title,
+          ],
+          [
+            "contact_message",
+            config.contact_message || defaultConfig.contact_message,
+          ],
+          [
+            "footer_copyright",
+            config.footer_copyright || defaultConfig.footer_copyright,
+          ],
+        ]);
+      }
+
+      if (window.elementSdk) {
+        window.elementSdk.init({
+          defaultConfig,
+          onConfigChange,
+          mapToCapabilities,
+          mapToEditPanelValues,
+        });
+      }
+
+      // Mobile Menu Toggle
+      const hamburger = document.getElementById("hamburger");
+      const mobileMenu = document.getElementById("mobileMenu");
+      const menuOverlay = document.getElementById("menuOverlay");
+      const mobileLinks = document.querySelectorAll(".mobile-link");
+
+      function toggleMenu() {
+        hamburger.classList.toggle("active");
+        mobileMenu.classList.toggle("active");
+        menuOverlay.classList.toggle("active");
+        document.body.style.overflow = mobileMenu.classList.contains("active")
+          ? "hidden"
+          : "";
+      }
+
+      hamburger.addEventListener("click", toggleMenu);
+      menuOverlay.addEventListener("click", toggleMenu);
+
+      mobileLinks.forEach((link) => {
+        link.addEventListener("click", () => {
+          toggleMenu();
+        });
+      });
+
+      // Theme Toggle
+      const themeToggle = document.getElementById("themeToggle");
+      const sunIcon = themeToggle.querySelector(".sun-icon");
+      const moonIcon = themeToggle.querySelector(".moon-icon");
+
+      const savedTheme = localStorage.getItem("theme") || "light";
+
+      if (savedTheme === "dark") {
+        document.body.classList.add("dark-mode");
+        sunIcon.style.display = "none";
+        moonIcon.style.display = "block";
+      }
+
+      themeToggle.addEventListener("click", () => {
+        document.body.classList.toggle("dark-mode");
+        const isDark = document.body.classList.contains("dark-mode");
+
+        sunIcon.style.display = isDark ? "none" : "block";
+        moonIcon.style.display = isDark ? "block" : "none";
+        localStorage.setItem("theme", isDark ? "dark" : "light");
+      });
+
+      // Scroll to Top
+      const scrollTop = document.getElementById("scrollTop");
+
+      window.addEventListener("scroll", () => {
+        if (window.scrollY > 400) {
+          scrollTop.classList.add("visible");
+        } else {
+          scrollTop.classList.remove("visible");
+        }
+      });
+
+      scrollTop.addEventListener("click", () => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+
+      // Form Submission
+      const contactForm = document.getElementById("contactForm");
+      const submitBtn = document.getElementById("submitBtn");
+
+      contactForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Sending...";
+
+        setTimeout(() => {
+          submitBtn.textContent = "✓ Message Sent!";
+          contactForm.reset();
+
+          setTimeout(() => {
+            submitBtn.disabled = false;
+            submitBtn.textContent = "Send Message";
+          }, 3000);
+        }, 1500);
+      });
+
+      // Smooth Scroll
+      document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+        anchor.addEventListener("click", function (e) {
+          e.preventDefault();
+          const target = document.querySelector(this.getAttribute("href"));
+          if (target) {
+            target.scrollIntoView({ behavior: "smooth", block: "start" });
+          }
+        });
+      });
+
+      // Scroll Animations
+      const observerOptions = {
+        threshold: 0.1,
+        rootMargin: "0px 0px -50px 0px",
+      };
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.style.opacity = "1";
+            entry.target.style.transform = "translateY(0)";
+            observer.unobserve(entry.target);
+          }
+        });
+      }, observerOptions);
+
+      document
+        .querySelectorAll(".project-card, .service-card, .skill-item")
+        .forEach((el) => {
+          el.style.opacity = "0";
+          el.style.transform = "translateY(30px)";
+          el.style.transition = "opacity 0.6s ease, transform 0.6s ease";
+          observer.observe(el);
+        });
+    </script>
+    <script>
+      (function () {
+        function c() {
+          var b = a.contentDocument || a.contentWindow.document;
+          if (b) {
+            var d = b.createElement("script");
+            d.innerHTML =
+              "window.__CF$cv$params={r:'9a4053bc336fed4b',t:'MTc2NDA2NTEyMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";
+            b.getElementsByTagName("head")[0].appendChild(d);
+          }
+        }
+        if (document.body) {
+          var a = document.createElement("iframe");
+          a.height = 1;
+          a.width = 1;
+          a.style.position = "absolute";
+          a.style.top = 0;
+          a.style.left = 0;
+          a.style.border = "none";
+          a.style.visibility = "hidden";
+          document.body.appendChild(a);
+          if ("loading" !== document.readyState) c();
+          else if (window.addEventListener)
+            document.addEventListener("DOMContentLoaded", c);
+          else {
+            var e = document.onreadystatechange || function () {};
+            document.onreadystatechange = function (b) {
+              e(b);
+              "loading" !== document.readyState &&
+                ((document.onreadystatechange = e), c());
+            };
+          }
+        }
+      })();
+    </script>
+  </body>
+</html>
